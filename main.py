@@ -39,3 +39,14 @@ def create_blog(blog:schemas.BlogCreate,db:Session=Depends(get_db)):
 @app.get("/blogs",response_model=list[schemas.BlogResponse])
 def get_blogs(db:Session = Depends(get_db)):
     return db.query(models.Blog).all()
+
+#read one blog
+@app.get("/blogs/{id}",response_model=schemas.BlogResponse)
+def get_blog(id:int,db:Session=Depends(get_db)):
+    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+    
+    if not blog:
+        raise HTTPException(status_code=404,detail="blog with this id does not exists")
+    return blog
+
+     
