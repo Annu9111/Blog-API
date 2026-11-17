@@ -74,6 +74,7 @@ def delete_blog(id:int,db:Session=Depends(get_db)):
     return {
         "message":"blog deleted successfully"
     }
+
     
     
     
