@@ -49,4 +49,18 @@ def get_blog(id:int,db:Session=Depends(get_db)):
         raise HTTPException(status_code=404,detail="blog with this id does not exists")
     return blog
 
+#update blog
+@app.put("/blogs/{id}",response_model=schemas.BlogResponse)
+def update_blog(id:int,blog:schemas.BlogCreate,db:Session=Depends(get_db)):
+    existing_blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+    if not existing_blog:
+        raise HTTPException(status_code=404,detail="blog with this id does not exists")
+    
+    existing_blog.title = blog.title
+    existing_blog.content = blog.content
+    
+    db.commit()
+    return existing_blog
+    
+    
      
