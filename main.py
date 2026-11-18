@@ -20,7 +20,7 @@ def get_db():
 @app.post("/login")
 def login():
     return {
-        "access_token":create_token({"user":"admin"}),
+        "access_token":create_token({"user":"admin"},...),
         "token_type":"bearer"
     }
         
@@ -41,7 +41,7 @@ def create_blog(blog:schemas.BlogCreate,user=Depends(verify_token),db:Session=De
     )
     db.add(new_blog)
     db.commit()
-    db.refresh()
+    db.refresh(new_blog)
     return new_blog
 
 #read all blog
