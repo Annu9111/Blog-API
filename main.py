@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends,HTTPException
+from fastapi import FastAPI,Depends,HTTPException,Query
 from sqlalchemy.orm import Session
 from database import engine,SessionLocal
 import models,schemas
@@ -45,9 +45,20 @@ def create_blog(blog:schemas.BlogCreate,user=Depends(verify_token),db:Session=De
     return new_blog
 
 #read all blog
-@app.get("/blogs",response_model=list[schemas.BlogResponse])
-def get_blogs(db:Session = Depends(get_db)):
-    return db.query(models.Blog).all()
+@app.get("/blogs")
+def get_blogs(page:int=1,limit:int=5,search:str=Query(default=""),db:Session=Depends(get_db)):
+    query = db.query(models.Blog)
+    if search:
+        query = query.filter(models.Blog.title.ilike(f"&{search}"))
+    total = query.count()
+    start = (page-1)*limit
+    blogs = query.offset(start).limit(limit).all()
+    return {
+        "page":page,
+        "limit":limit,
+        "total":total,
+        "data": blogs
+    }
 
 #read one blog
 @app.get("/blogs/{id}",response_model=schemas.BlogResponse)
