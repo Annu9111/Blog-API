@@ -2,6 +2,7 @@ from fastapi import FastAPI,Depends,HTTPException
 from sqlalchemy.orm import Session
 from database import engine,SessionLocal
 import models,schemas
+from auth import create_token,verify_token
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -14,6 +15,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+#login api
+@app.post("/login")
+def login():
+    return {
+        "access_token":create_token({"user":"admin"}),
+        "token_type":"bearer"
+    }
         
 #home
 @app.get("/")
@@ -24,7 +33,7 @@ def home():
 
 #create blog
 @app.post("/blogs",response_model=schemas.BlogResponse)
-def create_blog(blog:schemas.BlogCreate,db:Session=Depends(get_db)):
+def create_blog(blog:schemas.BlogCreate,user=Depends(verify_token),db:Session=Depends(get_db)):
     new_blog = models.Blog(
         title = blog.title,
         content = blog.content
@@ -51,7 +60,7 @@ def get_blog(id:int,db:Session=Depends(get_db)):
 
 #update blog
 @app.put("/blogs/{id}",response_model=schemas.BlogResponse)
-def update_blog(id:int,blog:schemas.BlogCreate,db:Session=Depends(get_db)):
+def update_blog(id:int,blog:schemas.BlogCreate,user=Depends(verify_token),db:Session=Depends(get_db)):
     existing_blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not existing_blog:
         raise HTTPException(status_code=404,detail="blog with this id does not exists")
